@@ -1,0 +1,18 @@
+src/
+├── components/
+│   ├── GameBoard.js       // Vastaa pelilaudasta, sisältää Cell-komponentit
+│   ├── Cell.js            // Yksittäinen peliruutu, johon voi klikata
+│   ├── StatusDisplay.js   // Näyttää pelin tilan (esim. "X's turn", "O has won!")
+│   ├── ScoreBoard.js      // Näyttää pistetilanteen
+│   └── ControlPanel.js    // Sisältää napit (Restart, Vs Player, Vs AI)
+│
+├── hooks/
+│   └── useTicTacToe.js    // (Valinnainen, mutta edistynyt ja hyvä tapa)
+│                          // Custom hook, joka sisältää kaiken pelilogiikan
+│                          // (laudan tilan, voittajan tarkistuksen, tekoälyn siirrot).
+│
+├── App.js                 // Pääkomponentti, joka kokoaa kaikki muut komponentit yhteen
+│                          // ja hallinnoi pelin tilaa (state).
+│
+├── index.js               // React-sovelluksen käynnistystiedosto (sinulla jo olemassa).
+└── style.css              // Globaalit tyylit (sinulla jo olemassa).
