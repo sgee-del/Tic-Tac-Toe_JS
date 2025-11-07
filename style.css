@@ -21,6 +21,35 @@ body {
     margin-bottom: 20px;
 }
 
+.mode-selection {
+    margin-bottom: 20px;
+}
+
+.mode-btn {
+    padding: 10px 15px;
+    font-size: 1rem;
+    cursor: pointer;
+    border: 1px solid #ccc;
+    background-color: #f0f0f0;
+    margin: 10px;
+    border-radius: 5px;
+}
+
+.mode-btn.active {
+    background-color: #007bff;
+    color: white;
+    
+}
+.mode-btn:not(.active):hover {
+    background-color: #e2e6ea;
+    border-color: #dae0e5;
+    color: black;
+    cursor: pointer;
+    transition: background-color 0.3s, border-color 0.3s, color 0.3s;
+    border-radius: 5px; 
+    transform: scale(1.1);
+}
+
 .game-board {
     display: grid;
     grid-template-columns: repeat(3, 100px);
@@ -28,6 +57,7 @@ body {
     gap: 10px;
     margin-bottom: 20px;
 }
+
 
 .cell {
     border-radius: 10px;
@@ -66,4 +96,3 @@ body {
 .winCells:hover {
     background-color: #90ee90;
 }
-

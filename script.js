@@ -5,9 +5,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const cells = document.querySelectorAll(".cell");
     const statusDisplay = document.getElementById("status");
     const restartButton = document.getElementById("restart");
+    const vsPlayerBtn = document.getElementById("vsPlayer");
+    const vsAIBtn = document.getElementById("vsAI");
 
     let gameActive = true;
     let currentPlayer = 'X';
+    let gameMode = 'pvp'; // 'pvp' for Player vs Player, 'pva' for Player vs AI
+
 
     // array pelilaudasta (9 tyhjää solua), muuttaa tilaa pelin aikana
     // Jokainen indeksi vastaa yhtä solua laudalla
@@ -29,19 +33,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Näyttää viestin nykyisestä pelaajasta/voitosta/tasapelistä jne..
     const winningMessage = () => `Player ${currentPlayer} has won!`;
-    const drawMessage = () => `Game ended in a draw!`;
+    const drawMessage = () => `Game ended in a draw!`; 
     const currentPlayerTurn = () => `It's ${currentPlayer}'s turn`;
     statusDisplay.innerHTML = currentPlayerTurn();
 
     // Vaihdetaan pelaajaa vuoron (klikkauksen) jälkeen
     function checkTurn() {
         currentPlayer = currentPlayer === "X" ? "O" : "X";
-        statusDisplay.innerHTML = currentPlayerTurn();
+        statusDisplay.innerHTML = currentPlayerTurn(); 
+
+        // If it's AI's turn, make a move
+        if (gameMode === 'pva' && currentPlayer === 'O' && gameActive) {
+            // Disable board during AI's turn
+            document.getElementById('game').style.pointerEvents = 'none';
+            // Add a small delay for better user experience
+            setTimeout(aiMove, 700);
+        }
     }
 
     // Käsitellään solun klikkaus ja päivitetään gamestate array
     function handleCellClick(clickedCellEvent) {
         const clickedCell = clickedCellEvent.target;
+
+        // Prevent human player from playing on AI's turn
+        if (gameMode === 'pva' && currentPlayer === 'O') {
+            return;
+        }
 
         // Varmistetaan että solua ei ole jo klikattu ja peli on aktiivinen
         if (clickedCell.textContent !== "" || !gameActive) {
@@ -53,6 +70,29 @@ document.addEventListener('DOMContentLoaded', () => {
         const clickedCellIndex = Array.from(cells).indexOf(clickedCell);
         // Päivitetään gamestate array klikatun solun indeksillä
         gamestate[clickedCellIndex] = currentPlayer;
+        checkResult();
+    }
+
+    // AI logic to make a move
+    function aiMove() {
+        // Find all empty cells
+        const availableCells = [];
+        gamestate.forEach((cell, index) => {
+            if (cell === "") {
+                availableCells.push(index);
+            }
+        });
+
+        // Pick a random empty cell
+        const randomIndex = availableCells[Math.floor(Math.random() * availableCells.length)];
+
+        // Make the move
+        gamestate[randomIndex] = currentPlayer;
+        cells[randomIndex].textContent = currentPlayer;
+
+        // Re-enable board after AI's turn
+        document.getElementById('game').style.pointerEvents = 'auto';
+
         checkResult();
     }
 
@@ -110,8 +150,21 @@ document.addEventListener('DOMContentLoaded', () => {
         gameActive = true;
         currentPlayer = 'X';
         statusDisplay.innerHTML = currentPlayerTurn();
+        document.getElementById('game').style.pointerEvents = 'auto';
         // Poistetaan winCells luokka kaikista soluista
         cells.forEach(cell => cell.classList.remove("winCells"));
+    }
+
+    function setGameMode(mode) {
+        gameMode = mode;
+        if (mode === 'pva') {
+            vsPlayerBtn.classList.remove('active');
+            vsAIBtn.classList.add('active');
+        } else {
+            vsAIBtn.classList.remove('active');
+            vsPlayerBtn.classList.add('active');
+        }
+        emptyBoard(); // Restart the game when mode changes
     }
 
     // Lisätään event listener joka napille (cell)
@@ -121,4 +174,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Lisätään event listener restart-napille, restart nappi kutsuu emptyBoard funktiota
     restartButton.addEventListener('click', emptyBoard);
+
+    // Event listeners for game mode buttons
+    vsPlayerBtn.addEventListener('click', () => setGameMode('pvp'));
+    vsAIBtn.addEventListener('click', () => setGameMode('pva'));
 });
