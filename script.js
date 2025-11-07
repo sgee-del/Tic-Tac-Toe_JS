@@ -1,181 +1,245 @@
 // suoritetaan skripti vasta kun koko sivu on ladattu
 document.addEventListener('DOMContentLoaded', () => {
 
-    // Alustetaan muuttujat html elementeille
-    const cells = document.querySelectorAll(".cell");
-    const statusDisplay = document.getElementById("status");
-    const restartButton = document.getElementById("restart");
-    const vsPlayerBtn = document.getElementById("vsPlayer");
-    const vsAIBtn = document.getElementById("vsAI");
+    // Alustetaan muuttujat html elementeille    
+    const statusDisplay = document.getElementById('status');
+    const gameBoard = document.getElementById('game');
+    const restartButton = document.getElementById('restart');
+    const vsPlayerButton = document.getElementById('vsPlayer');
+    const vsAIButton = document.getElementById('vsAI');
+    const scoreXDisplay = document.getElementById('scoreX');
+    const scoreODisplay = document.getElementById('scoreO');
 
-    let gameActive = true;
-    let currentPlayer = 'X';
-    let gameMode = 'pvp'; // 'pvp' for Player vs Player, 'pva' for Player vs AI
+    let board = ['', '', '', '', '', '', '', '', '']; // Pelilaudan tila
+    let currentPlayer = 'X'; // x aloittaa pelin
+    let isGameActive = true;
+    let isAI = false;
+    let cells = []; // Solujen määrä                   
 
+    let scores = { X: 0, O: 0 }; // Tallennetaaan pisteet
 
     // array pelilaudasta (9 tyhjää solua), muuttaa tilaa pelin aikana
     // Jokainen indeksi vastaa yhtä solua laudalla
     // ja päivittää tyhjän solun nykyiseksi pelaajakasi kun siihen klikataan
     // verrataan sitten löytyykö index yhdistelmä winningConditionsista
-    let gamestate = ["", "", "", "", "", "", "", "", ""];
-
-    // Kaikki mahdolliset voittoehdot, solun indeksit
     const winningConditions = [
-        [0, 1, 2],
-        [3, 4, 5],
-        [6, 7, 8],
-        [0, 3, 6],
-        [1, 4, 7],
-        [2, 5, 8],
-        [0, 4, 8],
-        [2, 4, 6]
+        [0, 1, 2], [3, 4, 5], [6, 7, 8], // Rows
+        [0, 3, 6], [1, 4, 7], [2, 5, 8], // Columns
+        [0, 4, 8], [2, 4, 6]             // Diagonals
     ];
 
-    // Näyttää viestin nykyisestä pelaajasta/voitosta/tasapelistä jne..
-    const winningMessage = () => `Player ${currentPlayer} has won!`;
-    const drawMessage = () => `Game ended in a draw!`; 
-    const currentPlayerTurn = () => `It's ${currentPlayer}'s turn`;
-    statusDisplay.innerHTML = currentPlayerTurn();
-
-    // Vaihdetaan pelaajaa vuoron (klikkauksen) jälkeen
-    function checkTurn() {
-        currentPlayer = currentPlayer === "X" ? "O" : "X";
-        statusDisplay.innerHTML = currentPlayerTurn(); 
-
-        // If it's AI's turn, make a move
-        if (gameMode === 'pva' && currentPlayer === 'O' && gameActive) {
-            // Disable board during AI's turn
-            document.getElementById('game').style.pointerEvents = 'none';
-            // Add a small delay for better user experience
-            setTimeout(aiMove, 700);
+    function initializeBoard() {
+        gameBoard.innerHTML = '';
+        cells = [];
+        for (let i = 0; i < 9; i++) {
+            const cell = document.createElement('button');
+            cell.classList.add('cell', 'btn', 'btn-lg', 'btn-dark');
+            cell.dataset.index = i;
+            gameBoard.appendChild(cell);
+            cells.push(cell);
+            cell.addEventListener('click', () => {
+                if (isAI && currentPlayer === 'O') return; // Estöö klikkaukset AI:n vuorolla
+                userAction(cell, i);
+            });
         }
     }
 
-    // Käsitellään solun klikkaus ja päivitetään gamestate array
-    function handleCellClick(clickedCellEvent) {
-        const clickedCell = clickedCellEvent.target;
-
-        // Prevent human player from playing on AI's turn
-        if (gameMode === 'pva' && currentPlayer === 'O') {
-            return;
-        }
-
-        // Varmistetaan että solua ei ole jo klikattu ja peli on aktiivinen
-        if (clickedCell.textContent !== "" || !gameActive) {
-            return;
-        }
-
-        // Päivitetään klikattuun soluun nykyinen pelaaja ("x" tai "o")
-        clickedCell.textContent = currentPlayer;
-        const clickedCellIndex = Array.from(cells).indexOf(clickedCell);
-        // Päivitetään gamestate array klikatun solun indeksillä
-        gamestate[clickedCellIndex] = currentPlayer;
-        checkResult();
-    }
-
-    // AI logic to make a move
-    function aiMove() {
-        // Find all empty cells
-        const availableCells = [];
-        gamestate.forEach((cell, index) => {
-            if (cell === "") {
-                availableCells.push(index);
-            }
-        });
-
-        // Pick a random empty cell
-        const randomIndex = availableCells[Math.floor(Math.random() * availableCells.length)];
-
-        // Make the move
-        gamestate[randomIndex] = currentPlayer;
-        cells[randomIndex].textContent = currentPlayer;
-
-        // Re-enable board after AI's turn
-        document.getElementById('game').style.pointerEvents = 'auto';
-
-        checkResult();
-    }
-
-    // Tarkistetaan pelin tulos (voitto/tasapeli/jatkuu)
-    function checkResult() {
+    function handleResultValidation() {
         let roundWon = false;
-
-        // Käydään läpi kaikki voittoehdot "winningConditions" arraysta
         for (let i = 0; i < winningConditions.length; i++) {
-            // Otetaan voittoehdon indeksit ja vastaavat arvot gamestatesta
-            // Annetaan arvot valA, valB, valC muuttujiin ja puretaan array
-            const [a, b, c] = winningConditions[i];
-            const valA = gamestate[a];
-            const valB = gamestate[b];
-            const valC = gamestate[c];
-
-            // Jos jokin solu on tyhjä, hypätään seuraavaan voittoehtoon
-            if (valA === '' || valB === '' || valC === '') {
+            const winCondition = winningConditions[i];
+            let a = board[winCondition[0]];
+            let b = board[winCondition[1]];
+            let c = board[winCondition[2]];
+            if (a === '' || b === '' || c === '') {
                 continue;
             }
-
-            // Jos [a, b, c] vastaa samaa pelaajaa, peli on voitettu eli silloin 
-            // gamestate[a] === gamestate[b] === gamestate[c] vastaa winningCondition arraysta riviä
-            // Lisätään .winCells luokka voittaneille soluille ja vaihdetaan väri css:llä
-            if (valA === valB && valB === valC) {
-                cells[a].classList.add("winCells");
-                cells[b].classList.add("winCells");
-                cells[c].classList.add("winCells");
-                roundWon = true;
+            if (a === b && b === c) {
+                roundWon = true; // LIsää voittaja listaan
+                winCondition.forEach(index => {
+                    cells[index].classList.add('winner');
+                });
                 break;
             }
         }
 
-        // Jos peli on voitettu, näytetään voittoviesti ja lopetetaan peli
         if (roundWon) {
-            statusDisplay.innerHTML = winningMessage();
-            gameActive = false;
+            statusDisplay.innerHTML = `Player ${currentPlayer} has won!`;
+            if (isAI && currentPlayer === 'O') { // AI wins
+                gameBoard.classList.add('shake');
+            }
+            updateScore(currentPlayer);
+            isGameActive = false;
             return;
         }
 
-        // Tarkista onko kaikki ruudut täynnä ilman voittajaa
-        if (!gamestate.includes("")) {
-            statusDisplay.innerHTML = drawMessage();
-            gameActive = false;
+        // Jos pelissä ei ole tyyhjiä ruutuja se on tasapalie eikä kumpmikaan voittanut
+        let roundDraw = !board.includes('');
+        if (roundDraw) {
+            statusDisplay.innerHTML = 'Game ended in a draw!';
+            gameBoard.classList.add('shake');
+            isGameActive = false;
             return;
         }
 
-        checkTurn(); // Jos kukaan ei voittanut, vaihdetaan vuoroa.
+        changePlayer();
     }
 
-    // Asettaa joka solun tyhjäksi ja aloittaa pelin alusta. restart nappi TODO: tarkista funktio
-    function emptyBoard() {
-        cells.forEach(cell => cell.textContent = "");
-        gamestate = ["", "", "", "", "", "", "", "", ""];
-        gameActive = true;
+    function updateScore(winner) {
+        scores[winner]++;
+        scoreXDisplay.innerText = scores.X;
+        scoreODisplay.innerText = scores.O;
+    }
+
+    // Funktio määrittää nykyisen pelaajan ja antaa sen mukaisen viestin/ vaihtaa vuoroa
+    function changePlayer() {
+        // Jos ei ole x:n vuoro annetaan currentPlayer arvoksi o
+        currentPlayer = currentPlayer === 'X' ? 'O' : 'X'; 
+        // Näytettään kenen vuoro html elementissä
+        statusDisplay.innerHTML = `It's ${currentPlayer}'s turn`;
+        if (isAI && currentPlayer === 'O' && isGameActive) {
+            setTimeout(aiMove, 500); // Pieni viive ennen AI:n siirtoa 
+        }
+    }
+
+    // AI looppaa läpi kaikki mahdollliset voittosenaariot ja pyrkii niihin
+    function checkWinner(currentBoard, player) {
+        for (let i = 0; i < winningConditions.length; i++) {
+            const [a, b, c] = winningConditions[i];
+            if (currentBoard[a] === player && currentBoard[b] === player && currentBoard[c] === player) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // Minmax algoritmi mikä on lähes voittamaton
+    function minimax(newBoard, player) {
+        const availableSpots = newBoard.map((cell, index) => cell === '' ? index : null).filter(val => val !== null);
+
+        // Tarkistetaan voittaja funktoilla checkWinner(), ja lisätään pisteitä
+        if (checkWinner(newBoard, 'X')) {
+            return { score: -10 };
+        } else if (checkWinner(newBoard, 'O')) {
+            return { score: 10 };
+        } else if (availableSpots.length === 0) {
+            return { score: 0 };
+        }
+
+        let moves = [];
+        for (let i = 0; i < availableSpots.length; i++) {
+            let move = {};
+            move.index = availableSpots[i];
+            newBoard[availableSpots[i]] = player;
+
+            if (player === 'O') {
+                let result = minimax(newBoard, 'X');
+                move.score = result.score;
+            } else {
+                let result = minimax(newBoard, 'O');
+                move.score = result.score;
+            }
+
+            newBoard[availableSpots[i]] = ''; // Resetoi ruutu
+            moves.push(move);
+        }
+
+        let bestMove;
+        if (player === 'O') { // AI'n vuori, minmax
+            let bestScore = -10000;
+            for (let i = 0; i < moves.length; i++) {
+                if (moves[i].score > bestScore) {
+                    bestScore = moves[i].score;
+                    bestMove = i;
+                }
+            }
+        } else { // Ihmisen vuoro, minimoi pisteet
+            let bestScore = 10000;
+            for (let i = 0; i < moves.length; i++) {
+                if (moves[i].score < bestScore) {
+                    bestScore = moves[i].score;
+                    bestMove = i;
+                }
+            }
+        }
+
+        return moves[bestMove];
+    }
+
+    // Function AI:n siirrolle
+    function aiMove() {
+        const bestMove = minimax(board, 'O');
+        const moveIndex = bestMove.index;
+
+        const cell = cells[moveIndex];
+        cell.innerHTML = currentPlayer;
+        cell.classList.add('player-o');
+        board[moveIndex] = currentPlayer;
+        handleResultValidation();
+    }
+
+    // Funktio tarkistaa onko klikatttu solu validi (tyhjä)
+    const isValidAction = (cell) => {
+        if (cell.innerHTML === 'X' || cell.innerHTML === 'O') {
+            return false;
+        }
+        return true;
+    };
+
+    // Validointi onko klikatttu solu validi ja peli aktiivinen ennenkuin päivitetään lauta
+    const userAction = (cell, index) => {
+        if (isValidAction(cell) && isGameActive) {
+            cell.innerHTML = currentPlayer;
+            // Add class for player color
+            if (currentPlayer === 'X') {
+                cell.classList.add('player-x');
+            } else {
+                cell.classList.add('player-o');
+            }
+            board[index] = currentPlayer;
+            handleResultValidation();
+        }
+    };
+
+    // Funktiolla aloitetaan peli uudestaa ja nollataan muuttujat
+    function restartGame() {
+        board = ['', '', '', '', '', '', '', '', ''];
+        isGameActive = true;
         currentPlayer = 'X';
-        statusDisplay.innerHTML = currentPlayerTurn();
-        document.getElementById('game').style.pointerEvents = 'auto';
-        // Poistetaan winCells luokka kaikista soluista
-        cells.forEach(cell => cell.classList.remove("winCells"));
-    }
+        statusDisplay.innerHTML = `It's ${currentPlayer}'s turn`;
+        cells.forEach(cell => cell.innerHTML = '');
+        
+        // Poistaa animaaion
+        cells.forEach(cell => cell.classList.remove('winner'));
+        gameBoard.classList.remove('shake');
+        // Poistaa pelaajjat
+        cells.forEach(cell => cell.classList.remove('player-x', 'player-o'));
 
-    function setGameMode(mode) {
-        gameMode = mode;
-        if (mode === 'pva') {
-            vsPlayerBtn.classList.remove('active');
-            vsAIBtn.classList.add('active');
-        } else {
-            vsAIBtn.classList.remove('active');
-            vsPlayerBtn.classList.add('active');
+        // Tarkistetaan onko AI:n vuoro
+        if (isAI && currentPlayer === 'O') {
+            setTimeout(aiMove, 500);
         }
-        emptyBoard(); // Restart the game when mode changes
     }
 
-    // Lisätään event listener joka napille (cell)
-    cells.forEach(cell => {
-        cell.addEventListener("click", handleCellClick);
-    });
+    // funktio mikä suoritetaan jos pelaat AI:ta vastaan  
+    function setGameMode(aiEnabled) {
+        isAI = aiEnabled;
+        scores = { X: 0, O: 0 }; // Resetoi psiteet viahtaessa pelimuotoa
+        // Näytetään pisteet
+        scoreXDisplay.innerText = scores.X;
+        scoreODisplay.innerText = scores.O;
+        restartGame();
+        // Päivitetään status viesti pelimuodon mukaan
+        if (isAI) {
+            statusDisplay.innerHTML = "Player vs AI. It's X's turn";
+        } else {
+            statusDisplay.innerHTML = "Player vs Player. It's X's turn";
+        }
+    }
 
-    // Lisätään event listener restart-napille, restart nappi kutsuu emptyBoard funktiota
-    restartButton.addEventListener('click', emptyBoard);
+    restartButton.addEventListener('click', restartGame);
+    vsPlayerButton.addEventListener('click', () => setGameMode(false));
+    vsAIButton.addEventListener('click', () => setGameMode(true));
 
-    // Event listeners for game mode buttons
-    vsPlayerBtn.addEventListener('click', () => setGameMode('pvp'));
-    vsAIBtn.addEventListener('click', () => setGameMode('pva'));
+    initializeBoard();
 });

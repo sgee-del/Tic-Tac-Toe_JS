@@ -1,98 +1,129 @@
+/* Google fonts */
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap');
 body {
-    font-family: Arial, sans-serif;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    margin: 0;
-    background-color: #dddddd;
+    font-family: 'Space Grotesk', sans-serif;
 }
 
-.board-container {
-    text-align: center;
-    background-color: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+/* Teksimääritykset */
+h1, h2, h3 {
+    font-family: 'JetBrains Mono', monospace;
 }
 
-.title {
-    font-size: 2rem;
-    margin-bottom: 20px;
+.game-container {
+    max-width: 500px;
+    max-height: 640px;
 }
 
-.mode-selection {
-    margin-bottom: 20px;
+/* Pisteet */
+.score {
+    font-size: 1.2em;
+    font-weight: bold;
 }
 
-.mode-btn {
-    padding: 10px 15px;
-    font-size: 1rem;
-    cursor: pointer;
-    border: 1px solid #ccc;
-    background-color: #f0f0f0;
-    margin: 10px;
-    border-radius: 5px;
+.navbar-brand {
+    font-weight: bold;
 }
 
-.mode-btn.active {
-    background-color: #007bff;
-    color: white;
-    
-}
-.mode-btn:not(.active):hover {
-    background-color: #e2e6ea;
-    border-color: #dae0e5;
-    color: black;
-    cursor: pointer;
-    transition: background-color 0.3s, border-color 0.3s, color 0.3s;
-    border-radius: 5px; 
-    transform: scale(1.1);
-}
-
+/* Pelilaudan asetukset */
 .game-board {
     display: grid;
     grid-template-columns: repeat(3, 100px);
-    grid-template-rows: repeat(3, 100px);
-    gap: 10px;
-    margin-bottom: 20px;
+    grid-template-rows: repeat(3, 100px);    
+    gap: 5px;
+    width: 310px; /* (100px * 3) + (5px * 2) */
 }
 
-
+/*  Solujen asetukset */
 .cell {
-    border-radius: 10px;
     width: 100px;
     height: 100px;
-    background-color: #ddd;
-    border: 2px solid #aaa;
-    font-size: 2.5rem;
+    font-size: 4em;
     font-weight: bold;
-    cursor: pointer;
+    line-height: 1;
     display: flex;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s, transform 0.2s;
+
 }
 
+/* hover peliruudun yllä */
 .cell:hover {
-    background-color: #f0f0f0;
+    transform: scale(1.07); /* Pienennetään hieman skaalausta siistimmän efektin saamiseksi */
+    z-index: 10; /* Varmistaa, että hoveroitu solu on muiden päällä */
 }
 
+/* pelitilanteen näyttö */
 .game-status {
-    margin-bottom: 20px;
-    font-size: 1.5rem;
-    min-height: 1.5rem;
+    font-size: 1.5em;
+    min-height: 1.5em;
+    font-weight: bold;
 }
 
-.restart-btn {
-    padding: 10px 20px;
-    font-size: 1rem;
-    cursor: pointer;
+/* Värit plejaajille */
+.cell.player-x {
+    color: #0dcaf0; /* Bootstrap info color */
 }
 
-.winCells {
-    background-color: #90ee90;
+.cell.player-o {
+    color: #ffc107; /* Bootstrap warning color */
 }
 
-.winCells:hover {
-    background-color: #90ee90;
+/* Animaatio voittajalle */
+.cell.winner {
+    animation: flash 0.5s 3;
+}
+
+.game-board.shake {
+    animation: shake 0.8s;
+}
+
+@keyframes flash {
+    0%, 100% { background-color: #6c757d; } /* Bootstrap secondary */
+    50% { background-color: #198754; } /* Bootstrap success */
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+@keyframes shake {
+  10%, 90% {
+    transform: translate3d(-1px, 0, 0);
+  }
+  
+  20%, 80% {
+    transform: translate3d(2px, 0, 0);
+  }
+
+  30%, 50%, 70% {
+    transform: translate3d(-4px, 0, 0);
+  }
+
+  40%, 60% {
+    transform: translate3d(4px, 0, 0);
+  }
+}
+
+/* Medie quaryt */
+@media (max-width: 768px) {
+    .game-board {
+        grid-template-columns: repeat(3, 80px);
+        grid-template-rows: repeat(3, 80px);
+        gap: 8px;
+        width: 256px; /* (80px * 3) + (8px * 2) */
+    }
+
+    /* Solujen koko pieneneee niiin ettö se näky hybin puheoiella */
+    .cell {
+        width: 80px;
+        height: 80px;
+        font-size: 3em;
+    }
+
+    .button.vs-player, .button.vs-ai {
+        font-size: 0.9em;
+    }
+
 }

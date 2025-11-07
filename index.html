@@ -5,26 +5,45 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tic-Tac-Toe</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    
 </head>
 
-<body>
-    <div class="board-container">
-        <h1 class="title">Tic-Tac-Toe</h1>
-        <div class="mode-selection">
-            <button id="vsPlayer" class="mode-btn">Player vs Player</button>
-            <button id="vsAI" class="mode-btn">Player vs AI</button>
-        </div>
-        <div id="game" class="game-board">
-            <button class="cell"></button><button class="cell"></button><button class="cell"></button>
-            <button class="cell"></button><button class="cell"></button><button class="cell"></button>
-            <button class="cell"></button><button class="cell"></button><button class="cell"></button>
-        </div>
-        <h2 id="status" class="game-status"></h2>
-        <button id="restart" class="restart-btn">Restart Game</button>
-    </div>
 
+<body class="bg-dark text-white vh-100 d-flex flex-column">
+    <!-- Headerin sisältö (nav-elementti) tulee nyt header.php-tiedostosta -->
+
+    <main class="container d-flex flex-grow-1 justify-content-center align-items-center">
+        <div class="game-container mx-auto">
+
+
+
+    <main class="container d-flex flex-grow-1 justify-content-center align-items-center">
+        <div class="game-container mx-auto">
+            <div class="card bg-secondary shadow text-center">
+                <div class="card-body p-4">
+                    <h1 class="card-title">Tic-Tac-Toe</h1>
+                    <div class="d-flex justify-content-around my-3 fs-5">
+                        <div class="score">Player X: <span id="scoreX">0</span></div>
+                        <div class="score">Player O: <span id="scoreO">0</span></div>
+                    </div>
+                    <div class="my-3 btn-group w-100" role="group">
+                        <button id="vsPlayer" class="btn btn-outline-light mx-2">Player vs Player</button>
+                        <button id="vsAI" class="btn btn-outline-light mx-2">Player vs AI</button>
+                    </div>
+                    <div id="game" class="game-board mx-auto my-4"></div>
+                    <h2 id="status" class="game-status my-3">Select a game mode to start!</h2>
+                    <button id="restart" class="btn btn-success btn-lg">Restart Game</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="script.js"></script>
-</body>
+    </body>
 
 </html>
