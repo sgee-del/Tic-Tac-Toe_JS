@@ -1,5 +1,7 @@
 import React from "react";
 
+// Määritellään yksittäinen ruutu (cell) pelilaudalle
+
 const Cell = ({ value, onClick }) => {
   return (
     <button
